@@ -161,8 +161,13 @@ void splitMetaData( vector<process> &pdata,
 		//check if new process start or end
 		if ( tempMeta.metaCode == 'S' || tempMeta.metaCode == 'A' )
 		{
-
-			if( strcmp( tempMeta.metaDescriptor, "end" ) == 0 )
+			
+			if( tempMeta.metaCode == 'S' && 
+				strcmp( tempMeta. metaDescriptor, "end" ) == 0 )
+			{
+				pdata[ pdata.size() - 1 ].metadata.push_back( tempMeta );
+			}
+			else if( strcmp( tempMeta.metaDescriptor, "end" ) == 0 )
 			{
 				tempProcess.changeState( NEW );
 				tempProcess.processNum = processIndex;
@@ -223,6 +228,7 @@ void logData( configData cdata,
 	{
 		cout << "Error. Invalid Logging Information: " 
 			 << cdata.logInfo << endl; 
+
 	}
 	//check if logging to file
 	if( file == true )
@@ -249,7 +255,14 @@ void logData( configData cdata,
 	{
 		SJF( pdata, cdata, monitor, file, fout );
 	}
+	else if ( strcmp( cdata.scheduling, "RR " ) == 0 )
+	{
+		//RR( pdata, cdata, monitor, file, fout );
+	}
+	else if( strcmp( cdata.scheduling, "STR"))
+	{
 
+	}
 
 	fout.close();
 }
@@ -316,44 +329,18 @@ bool logProcessingData( process &proc,
 		{
 			//get start string
 			check = getStartString( currMetaData, startStr, time, proc, cdata );
-
+		
 			//output to monitor
 			if( monitor ) 
 			{
-				if( currMetaData.metaCode == 'S' )
-				{
-					if( proc.processNum  == 1 )
-					{
-						cout << startStr << endl;
-					}
-					else if ( strcmp( currMetaData.metaDescriptor, "end" ) == 0 )
-					{
-						cout << startStr << endl;
-					}
-				}
-				else
-				{
-					cout << startStr << endl;
-				}
+				cout << startStr << endl;
 			}
 			//output to file
 			if( file )
 			{
-				if( currMetaData.metaCode == 'S' )
-				{
-					if( proc.processNum  == 1 )
-					{
-						fout << startStr << endl;
-					}
-					else if ( strcmp( currMetaData.metaDescriptor, "end" ) == 0 )
-					{
-						fout << startStr << endl;
-					}
-				}
-				else
-				{
-					fout << startStr << endl;
-				}
+				
+				fout << startStr << endl;
+				
 			}
 			//if could get start string. then get end string
 			if ( check )
@@ -1144,9 +1131,9 @@ void SJF ( vector<process> pdata,
 {
 	int index, subIndex;
 	int size = pdata.size();
-	int msize;
-	metaData mTemp1;
-	metaData mTemp2;
+	int mSize = pdata[ size - 1 ].metadata.size();
+	metaData meta1;
+	metaData meta2;
 	double time = 0.0;
 	process tempProcess;
 	bool valid; 
@@ -1156,6 +1143,14 @@ void SJF ( vector<process> pdata,
 	{
 		pdata[ index ].getTotalTime();
 	}
+
+	meta1 = pdata[ 0 ].metadata[ 0 ];
+	//cout << "meta 1" << meta1.metaDescriptor << " c" << meta1.metaCode << endl;
+	pdata[ 0 ].metadata.erase( pdata[ 0 ].metadata.begin() );
+
+	meta2 = pdata[ size - 1 ].metadata[ mSize - 1 ];
+	pdata[ size - 1 ].metadata.pop_back();
+
 
 	for ( index = 0; index < size; index++ )
 	{
@@ -1173,35 +1168,14 @@ void SJF ( vector<process> pdata,
 
 	pdata[ size - 1].lastProc = true;
 
-	//ensures that S(end) and S(start) remain at apprioriate place 
-	for( index = 0; index < size; index++)
-	{
-		msize = pdata[ index ].metadata.size();
-		for( subIndex = 0; subIndex < msize; subIndex++ )
-		{
-			if( pdata[ index ].metadata[ subIndex ].metaCode == 'S' &&
-				strcmp( pdata[ index ].metadata[ subIndex ].metaDescriptor, "end" ) == 0 )
-			{
-				mTemp1 = pdata[ index ].metadata[ subIndex ];
-				pdata[ index ].metadata.erase( pdata[ index ].metadata.begin() + subIndex );
-			}
-			else if ( pdata[ index ].metadata[ subIndex ].metaCode == 'S' &&
-				strcmp( pdata[ index ].metadata[ subIndex ].metaDescriptor, "start" ) == 0 )
-			{
-				mTemp2 = pdata[ index ].metadata[ subIndex ];
-				pdata[ index ].metadata.erase( pdata[ index ].metadata.begin() + subIndex );
-			}
-		}
-	}
-
-	pdata[ 0 ].metadata.insert( pdata[ 0 ].metadata.begin(), mTemp2 );
-	pdata[ size - 1 ].metadata.push_back( mTemp1 );
+	pdata[ 0 ].metadata.insert( pdata[ 0 ].metadata.begin(), meta1 );
+	pdata[ size - 1 ].metadata.push_back( meta2 );
 
 	for ( index = 0; index < size; index++ )
 	{
 		pdata[ index ].changeState( RUNNING );
 
-		pdata[ index ].processNum = index + 1;
+		//pdata[ index ].processNum = index + 1;
 
 		valid = logProcessingData( pdata[ index ], cdata, monitor, file, time, fout );
 
@@ -1254,9 +1228,9 @@ void PS ( vector<process> pdata,
 {
 	int index, subIndex;
 	int size = pdata.size();
-	int msize;
-	metaData mTemp1;
-	metaData mTemp2;
+	int mSize = pdata[ size - 1 ].metadata.size();
+	metaData meta1;
+	metaData meta2;
 	double time = 0.0;
 	bool valid;
 	process tempProcess;
@@ -1265,6 +1239,13 @@ void PS ( vector<process> pdata,
 	{
 		pdata[ index ].getPriority();
 	}
+
+	meta1 = pdata[ 0 ].metadata[ 0 ];
+	//cout << "meta 1" << meta1.metaDescriptor << " c" << meta1.metaCode << endl;
+	pdata[ 0 ].metadata.erase( pdata[ 0 ].metadata.begin() );
+
+	meta2 = pdata[ size - 1 ].metadata[ mSize - 1 ];
+	pdata[ size - 1 ].metadata.pop_back();
 
 	for ( index = 0; index < size; index++ )
 	{
@@ -1281,33 +1262,12 @@ void PS ( vector<process> pdata,
 
 	pdata[ size - 1].lastProc = true;
 
-	for( index = 0; index < size; index++)
-	{
-		msize = pdata[ index ].metadata.size();
-		for( subIndex = 0; subIndex < msize; subIndex++ )
-		{
-			if( pdata[ index ].metadata[ subIndex ].metaCode == 'S' &&
-				strcmp( pdata[ index ].metadata[ subIndex ].metaDescriptor, "end" ) == 0 )
-			{
-				mTemp1 = pdata[ index ].metadata[ subIndex ];
-				pdata[ index ].metadata.erase( pdata[ index ].metadata.begin() + subIndex );
-			}
-			else if ( pdata[ index ].metadata[ subIndex ].metaCode == 'S' &&
-				strcmp( pdata[ index ].metadata[ subIndex ].metaDescriptor, "start" ) == 0 )
-			{
-				mTemp2 = pdata[ index ].metadata[ subIndex ];
-				pdata[ index ].metadata.erase( pdata[ index ].metadata.begin() + subIndex );
-			}
-		}
-	}
-
-	pdata[ 0 ].metadata.insert( pdata[ 0 ].metadata.begin(), mTemp2 );
-	pdata[ size - 1 ].metadata.push_back( mTemp1 );
+	pdata[ 0 ].metadata.insert( pdata[ 0 ].metadata.begin(), meta1 );
+	pdata[ size - 1 ].metadata.push_back( meta2 );
 
 	for ( index = 0; index < size; index++ )
 	{
 		pdata[ index ].changeState( RUNNING );
-		pdata[ index ].processNum = index + 1;
 
 		valid = logProcessingData( pdata[ index ], cdata, monitor, file, time, fout );
 

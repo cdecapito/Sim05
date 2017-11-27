@@ -112,6 +112,7 @@ bool getConfigData( char filename[],
 			removeSpace( temp );
 			empty = isEmpty( temp );
 
+
 			if ( !empty )
 			{
 				strcpy( cdata.version, temp );
@@ -125,6 +126,7 @@ bool getConfigData( char filename[],
 			fin.getline( temp, STR_LEN, '\n' );
 			removeSpace( temp );
 			empty = isEmpty( temp );
+
 
 			if( !logFileValid( temp ) )
 			{
@@ -146,6 +148,7 @@ bool getConfigData( char filename[],
 			removeSpace( temp );
 			empty = isEmpty( temp );
 
+			
 			if ( !empty )
 			{
 				//char to int conversion
@@ -265,6 +268,7 @@ bool getConfigData( char filename[],
 			fin.getline( temp, STR_LEN, '\n' );
 			removeSpace( temp );
 			empty = isEmpty( temp );
+		
 
 			if ( !empty )
 			{
@@ -384,11 +388,13 @@ bool getConfigData( char filename[],
 				strcpy( cdata.scheduling, temp );
 			}
 		}
-		else if ( strcmp( temp, "Processor Quantum Number" ) == 0 )
+		else if ( strcmp( temp, "Quantum Number (msec)" ) == 0 )
 		{
 			fin.getline( temp, STR_LEN, '\n' );
 			removeSpace( temp );
 			empty = isEmpty( temp );
+
+			
 
 			if( !empty )
 			{

@@ -367,11 +367,16 @@ void metaData::getEndString( char string[],
 void metaData::getStartString( char string[],
 							   char process[] )
 {
+
+	
 	if ( metaCode == 'S' )
 	{
+		
 		if( strcmp( metaDescriptor, "start" ) == 0 )
 		{
+			
 			strcat( string, "Simulator program starting" );
+			
 		}
 		else
 		{
